@@ -57,6 +57,7 @@ public class GastoController {
 	}
 
 	@PostMapping
+	@ResponseStatus(HttpStatus.CREATED)
 	public GastoDto salvar (@RequestBody GastoInputDto gastoInput) {
 		Gasto gasto = modelMapper.map(gastoInput, Gasto.class); 
 		
