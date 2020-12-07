@@ -3,7 +3,9 @@ package com.gastos.gastos.api.controller;
 import java.time.LocalDate;
 import java.time.YearMonth;
 import java.util.List;
+import java.util.stream.Collectors;
 
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -17,6 +19,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.gastos.gastos.api.dto.GastoDto;
+import com.gastos.gastos.api.dto.input.GastoInputDto;
 import com.gastos.gastos.domain.model.Gasto;
 import com.gastos.gastos.domain.repository.GastoRepository;
 import com.gastos.gastos.domain.service.GastoRegisterService;
@@ -27,32 +31,43 @@ import com.gastos.gastos.domain.service.GastoRegisterService;
 public class GastoController {
 	
 	@Autowired
+	public ModelMapper modelMapper;
+	
+	@Autowired
 	private GastoRegisterService gastoRegister;
 	
 	@Autowired
 	private GastoRepository gastoRepository;
 	
 	@GetMapping
-	public List<Gasto> listar (@RequestParam int ano, @RequestParam int mes) {
+	public List<GastoDto> listar (@RequestParam int ano, @RequestParam int mes) {
 		LocalDate dataInicial = LocalDate.of(ano, mes, 1);
 		LocalDate dataFinal = YearMonth.of(ano, mes).atEndOfMonth();
-		return gastoRepository.findByDataBetween(dataInicial, dataFinal);
+		
+		List<Gasto> gastos = gastoRepository.findByDataBetween(dataInicial, dataFinal);
+		
+		return gastos.stream()
+			.map((gasto) -> modelMapper.map(gasto, GastoDto.class))
+			.collect(Collectors.toList());
 	}
 	
 	@GetMapping("/{id}")
-	public Gasto detalhar (@PathVariable Long id) {
-		return gastoRegister.getOrFail(id);
+	public GastoDto detalhar (@PathVariable Long id) {
+		return modelMapper.map(gastoRegister.getOrFail(id), GastoDto.class);
 	}
 
 	@PostMapping
-	public Gasto salvar (@RequestBody Gasto gasto) {
-		return gastoRegister.register(gasto);
+	public GastoDto salvar (@RequestBody GastoInputDto gastoInput) {
+		Gasto gasto = modelMapper.map(gastoInput, Gasto.class); 
+		
+		gasto = gastoRegister.register(gasto);
+		
+		return modelMapper.map(gasto, GastoDto.class); 
 	}
 	
 	@DeleteMapping("/{id}")
 	@ResponseStatus(HttpStatus.NO_CONTENT)
 	public void excluir (@PathVariable Long id) {
-		System.out.println("excluir gasto " + id);
 		gastoRegister.unregister(id);
 	}
 	
