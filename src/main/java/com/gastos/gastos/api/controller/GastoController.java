@@ -26,7 +26,7 @@ import com.gastos.gastos.domain.repository.GastoRepository;
 import com.gastos.gastos.domain.service.GastoRegisterService;
 
 @RestController
-@RequestMapping(value="/gasto")
+@RequestMapping(value="/gastos")
 @CrossOrigin(origins = "http://localhost:3000")
 public class GastoController {
 	
