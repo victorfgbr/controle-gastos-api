@@ -40,11 +40,19 @@ public class GastoController {
 	private GastoRepository gastoRepository;
 	
 	@GetMapping
-	public List<GastoDto> listar (@RequestParam int ano, @RequestParam int mes) {
-		LocalDate dataInicial = LocalDate.of(ano, mes, 1);
-		LocalDate dataFinal = YearMonth.of(ano, mes).atEndOfMonth();
+	public List<GastoDto> listar (@RequestParam(required=false) Integer ano, 
+			@RequestParam(required=false) Integer mes) {
 		
-		List<Gasto> gastos = gastoRepository.findByDataBetween(dataInicial, dataFinal);
+		List<Gasto> gastos = null;
+		
+		if (ano != null && mes != null) {
+			LocalDate dataInicial = LocalDate.of(ano, mes, 1);
+			LocalDate dataFinal = YearMonth.of(ano, mes).atEndOfMonth();
+			gastos = gastoRepository.findByDataBetween(dataInicial, dataFinal);
+		}
+		else {
+			gastos = gastoRepository.findAll();
+		}
 		
 		return gastos.stream()
 			.map((gasto) -> modelMapper.map(gasto, GastoDto.class))
